@@ -1,4 +1,3 @@
-# %%
 import requests
 import csv
 import datetime
@@ -8,13 +7,13 @@ from bs4 import BeautifulSoup
 
 def is_scraping_time():
     now = datetime.datetime.now()
-    hour, minute = now.hour, now.minute
+    hour = now.hour
     weekday = now.weekday()  # Monday = 0, Sunday = 6
-    
+    # adjusted for AWS time
     if weekday < 5:  # Monday to Friday
-        return 5 <= hour < 23
+        return 6 <= hour < 23
     else:  # Saturday, Sunday
-        return 9 <= hour < 23
+        return 10 <= hour < 23
 
 def scrape_data():
     url = "https://www.sutka.eu"
@@ -49,7 +48,7 @@ def scrape_data():
     except Exception as e:
         print(f"Error parsing data: {e}")
         return None
-    
+
 data_collection = []
 
 while True:
@@ -60,16 +59,14 @@ while True:
             print(f"Data recorded: {record}")
     
     now = datetime.datetime.now()
-    if now.hour == 22 and now.minute == 1:
+
+    # Save data at 10 PM daily
+    # adjusted for AWS time
+    if now.hour == 21 and now.minute == 0:
         with open('data.csv', "a", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
             writer.writerows(data_collection)
-        print(f"Data saved to data.csv")
+        print("Data saved to data.csv")
         data_collection = []
-    
-    time.sleep(30)
 
-    if now.hour == 22 and now.minute == 1:
-        break
-
-# %%
+    time.sleep(30)  # Wait 30 seconds before the next check
